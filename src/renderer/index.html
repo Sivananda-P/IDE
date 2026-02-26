@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognifyr IDE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <span id="explorer-title">Explorer</span>
+                <div class="actions">
+                    <button id="main-new-file" title="New File">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                        </svg>
+                    </button>
+                    <button id="main-new-folder" title="New Folder">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="file-tree"></div>
+        </aside>
+
+        <main id="editor-container">
+            <div id="editor"></div>
+            <div id="terminal-section">
+                <div id="terminal-tabs-header">
+                    <div id="terminal-tabs"></div>
+                    <button id="add-terminal-btn" title="New Terminal">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                    </button>
+                    <div id="terminal-spacer"></div>
+                </div>
+                <div id="terminal-content"></div>
+            </div>
+        </main>
+
+        <aside id="chat-sidebar">
+            <div class="sidebar-header">Cognifyr AI</div>
+            <div id="chat-messages"></div>
+            <div id="ai-status" class="status-indicator hidden">
+                <span class="spinner"></span> Thinking...
+            </div>
+            <div id="chat-input-container">
+                <textarea id="chat-input" placeholder="Describe what you want to build..."></textarea>
+                <button id="send-btn">Generate Code</button>
+            </div>
+        </aside>
+    </div>
+
+    <link rel="stylesheet" href="../../node_modules/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="../../node_modules/xterm/lib/xterm.js"></script>
+    <script src="../../node_modules/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <script src="../../node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script src="editor.js"></script>
+    <script src="explorer.js"></script>
+    <script src="terminal.js"></script>
+    <script src="chat.js"></script>
+</body>
+
+</html>
