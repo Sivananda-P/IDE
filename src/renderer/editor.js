@@ -10,9 +10,21 @@ require(['vs/editor/editor.main'], function () {
         fontSize: 14,
         fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', monospace",
         minimap: { enabled: true },
-        padding: { top: 16 },
+        padding: { top: 32 }, // More padding for breadcrumbs
         lineNumbers: 'on'
     });
+
+    // Update Outline if globally available
+    if (window.updateOutline) {
+        window.editor.onDidChangeModelContent(() => {
+            const model = window.editor.getModel();
+            if (model) window.updateOutline(model.getValue(), model.getLanguageId());
+        });
+        window.editor.onDidChangeModel(() => {
+            const model = window.editor.getModel();
+            if (model) window.updateOutline(model.getValue(), model.getLanguageId());
+        });
+    }
 
     // Update Status Bar on Cursor Change
     window.editor.onDidChangeCursorPosition((e) => {
@@ -62,6 +74,48 @@ window.openFile = async function (path) {
     switchTab(path);
 };
 
+function updateBreadcrumbs(path) {
+    const container = document.getElementById('breadcrumbs-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!path) return;
+
+    // Use currentRootPath to determine relative segments if possible
+    const root = window.currentRootPath || '';
+    let relativePath = path;
+    if (path.startsWith(root)) {
+        relativePath = path.slice(root.length).replace(/^[\\\/]/, '');
+    }
+
+    const segments = relativePath.split(/[\\\/]/);
+
+    segments.forEach((segment, index) => {
+        if (index > 0) {
+            const sep = document.createElement('span');
+            sep.className = 'breadcrumb-separator';
+            sep.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+            container.appendChild(sep);
+        }
+
+        const item = document.createElement('div');
+        item.className = 'breadcrumb-item';
+        if (index === segments.length - 1) item.classList.add('file');
+
+        const isFile = index === segments.length - 1;
+        const icon = isFile ?
+            `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #e37933"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>` :
+            `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #dcb67a"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+
+        item.innerHTML = `
+            <span class="item-icon">${icon}</span>
+            <span>${segment}</span>
+        `;
+
+        container.appendChild(item);
+    });
+}
+
 function switchTab(path) {
     const tabData = openTabs.get(path);
     if (!tabData) return;
@@ -80,6 +134,8 @@ function switchTab(path) {
         document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
         explorerItem.classList.add('active');
     }
+
+    updateBreadcrumbs(path);
 }
 
 function closeTab(path, e) {

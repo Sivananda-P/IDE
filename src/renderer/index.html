@@ -36,7 +36,7 @@
                         <path d="M12 13V6"></path>
                     </svg>
                 </div>
-                <div class="activity-item active" data-view="ai" title="AI Chat">
+                <div class="activity-item" data-view="ai" title="AI Chat">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
                         <path d="M12 12L2.1 12.1"></path>
@@ -70,6 +70,19 @@
                         </div>
                     </div>
                     <div id="file-tree"></div>
+
+                    <!-- Outline Section -->
+                    <div class="git-section" id="explorer-outline-section">
+                        <div class="git-section-header">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" class="arrow-icon">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                            <span>OUTLINE</span>
+                        </div>
+                        <div id="outline-list" class="git-items-container"></div>
+                    </div>
+
                     <div id="explorer-status">Ready</div>
                 </div>
 
@@ -230,7 +243,11 @@
 
             <main id="editor-container">
                 <div id="tabs-container"></div>
+                <div id="breadcrumbs-bar">
+                    <div id="breadcrumbs-container"></div>
+                </div>
                 <div id="editor"></div>
+
                 <div id="terminal-section">
                     <div id="terminal-tabs-header">
                         <div id="terminal-tabs"></div>
@@ -289,7 +306,7 @@
                 <div id="palette-results" class="palette-results"></div>
             </div>
         </div>
-    </div>
+    </div> <!-- End of app -->
 
     <link rel="stylesheet" href="../../node_modules/xterm/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -297,6 +314,7 @@
     <script src="../../node_modules/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
     <script src="../../node_modules/monaco-editor/min/vs/loader.js"></script>
     <script src="editor.js"></script>
+    <script src="outline.js"></script>
     <script src="explorer.js"></script>
     <script src="terminal.js"></script>
     <script src="chat.js"></script>

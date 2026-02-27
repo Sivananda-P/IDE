@@ -73,6 +73,18 @@ function init() {
     } else {
         logStatus('Ready - No Folder Open');
     }
+
+    // Section Collapse/Expand for Outline
+    const outlineHeader = document.querySelector('#explorer-outline-section .git-section-header');
+    if (outlineHeader) {
+        outlineHeader.onclick = () => {
+            const container = document.getElementById('outline-list');
+            const icon = outlineHeader.querySelector('.arrow-icon');
+            const isHidden = container.style.display === 'none';
+            container.style.display = isHidden ? 'block' : 'none';
+            if (icon) icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+        };
+    }
 }
 
 async function openProject(path) {

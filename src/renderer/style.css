@@ -643,6 +643,58 @@ body {
     opacity: 0.9;
 }
 
+/* Breadcrumbs Bar */
+#breadcrumbs-bar {
+    height: 22px;
+    background: #1e1e1e;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+#breadcrumbs-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #888;
+    white-space: nowrap;
+}
+
+.breadcrumb-item {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.1s;
+}
+
+.breadcrumb-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ccc;
+}
+
+.breadcrumb-separator {
+    opacity: 0.4;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-item.file {
+    color: #ccc;
+}
+
+.breadcrumb-item .item-icon {
+    display: flex;
+    align-items: center;
+    opacity: 0.8;
+}
+
 /* Git Pane Styles */
 .git-container {
     display: flex;
@@ -846,13 +898,31 @@ body {
     text-transform: uppercase;
 }
 
+.git-action-icon:hover[title="Discard Changes"] {
+    color: #f14c4c;
+}
+
+.git-action-icon:hover[title="Stage"],
+.git-action-icon:hover[title="Unstage"] {
+    color: #73c991;
+}
+
+.git-section-header .header-actions {
+    display: none;
+    gap: 4px;
+}
+
+.git-section-header:hover .header-actions {
+    display: flex;
+}
+
 .section-count {
-    background: rgba(255, 255, 255, 0.1);
+    background: #3c3c3c;
     padding: 0 6px;
     border-radius: 10px;
     font-size: 10px;
     color: #cccccc;
-    margin-left: 4px;
+    margin-left: 6px;
 }
 
 .git-items-container {
@@ -862,23 +932,34 @@ body {
 .git-change-item {
     display: flex;
     align-items: center;
-    padding: 2px 20px;
-    gap: 8px;
+    padding: 2px 8px 2px 14px;
+    gap: 6px;
     font-size: 13px;
     color: #cccccc;
     cursor: pointer;
     height: 22px;
+    position: relative;
+    user-select: none;
 }
 
 .git-change-item:hover {
     background: #2a2d2e;
 }
 
+.item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+}
+
 .item-label {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 140px;
+    color: #e1e1e1;
 }
 
 .item-path {
@@ -888,6 +969,34 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
+    margin-right: 8px;
+}
+
+.git-actions {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    margin-right: 4px;
+}
+
+.git-change-item:hover .git-actions {
+    display: flex;
+}
+
+.git-action-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: #cccccc;
+    transition: background 0.1s, color 0.1s;
+}
+
+.git-action-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
 .git-status-badge {
@@ -895,6 +1004,12 @@ body {
     font-size: 11px;
     width: 16px;
     text-align: center;
+    transition: opacity 0.1s;
+}
+
+.git-change-item:hover .git-status-badge {
+    display: none;
+    /* Hide status badge on hover to make room for actions */
 }
 
 .graph-actions {
