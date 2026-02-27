@@ -1,5 +1,5 @@
 const fileTree = document.getElementById('file-tree');
-const sidebar = document.getElementById('sidebar');
+const explorerView = document.getElementById('view-explorer');
 const statusLog = document.getElementById('explorer-status');
 let currentRootPath = localStorage.getItem('lastRootPath') || '';
 window.currentRootPath = currentRootPath;
@@ -23,10 +23,8 @@ if (!openFolderBtn) {
     openFolderBtn.innerText = 'Open Folder';
     openFolderBtn.id = 'open-folder-btn';
     openFolderBtn.className = 'primary-btn';
-    // Style now handled largely via CSS or simple utility
-    openFolderBtn.style.cssText = 'width: calc(100% - 32px); margin: 16px; padding: 10px; background: var(--accent); color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600;';
-    if (sidebar && fileTree) {
-        sidebar.insertBefore(openFolderBtn, fileTree);
+    if (explorerView && fileTree) {
+        explorerView.insertBefore(openFolderBtn, fileTree);
     }
 }
 
@@ -86,6 +84,8 @@ async function openProject(path) {
     if (titleEl) titleEl.innerHTML = `EXPLORER <small style="font-size: 0.6em; opacity: 0.5;">v2.3.1</small><br>${folderName.toUpperCase()}`;
     openFolderBtn.style.display = 'none';
     loadDirectory(path);
+    if (window.refreshGit) window.refreshGit();
+    if (window.createTerminal) window.createTerminal(path);
     logStatus('Folder Loaded: ' + folderName);
 }
 
@@ -254,17 +254,7 @@ function createFileItem(file) {
                 await loadDirectory(file.path, subContainer);
             }
         } else {
-            logStatus(`Opening ${file.name}...`);
-            const content = await window.electronAPI.readFile(file.path);
-            window.currentFilePath = file.path;
-            document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            if (window.editor) {
-                const ext = file.name.split('.').pop().toLowerCase();
-                const langMap = { 'js': 'javascript', 'html': 'html', 'css': 'css', 'md': 'markdown', 'json': 'json', 'py': 'python' };
-                monaco.editor.setModelLanguage(window.editor.getModel(), langMap[ext] || 'plaintext');
-                window.editor.setValue(content);
-            }
+            window.openFile(file.path);
         }
     };
 
@@ -293,7 +283,7 @@ async function deleteItem(path, name) {
     if (confirm(`Delete "${name}"?`)) {
         const result = await window.electronAPI.deleteItem(path);
         if (result.success) {
-            if (window.currentFilePath === path) { window.currentFilePath = null; if (window.editor) window.editor.setValue(''); }
+            if (window.closeTab) window.closeTab(path);
             refreshTree();
         }
     }

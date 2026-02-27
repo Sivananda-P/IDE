@@ -9,12 +9,6 @@ let activeTerminalId = null;
 if (typeof Terminal === 'undefined') {
     terminalContent.innerHTML = '<div style="color:red; padding: 10px;">Xterm.js failed to load. Check console.</div>';
 } else {
-    // UI Events
-    addTerminalBtn.addEventListener('click', () => createTerminal());
-
-    // Initialize first terminal
-    createTerminal();
-
     // Create a special non-pty AI Console
     createAIConsole();
 
@@ -76,8 +70,9 @@ async function createAIConsole() {
     });
 }
 
-async function createTerminal() {
-    const id = await window.electronAPI.createTerminal();
+window.createTerminal = async function (cwd) {
+    const path = cwd || window.currentRootPath;
+    const id = await window.electronAPI.createTerminal(path);
 
     // Create UI Tab
     const tab = document.createElement('div');
@@ -177,3 +172,9 @@ window.addEventListener('resize', () => {
         terminals.get(activeTerminalId).fitAddon.fit();
     }
 });
+
+// Initialize first terminal if Xterm is loaded
+if (typeof Terminal !== 'undefined') {
+    addTerminalBtn.addEventListener('click', () => window.createTerminal());
+    window.createTerminal();
+}

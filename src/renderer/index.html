@@ -13,57 +13,282 @@
 
 <body>
     <div id="app">
-        <aside id="sidebar">
-            <div class="sidebar-header">
-                <span id="explorer-title">Explorer</span>
-                <div class="actions">
-                    <button id="main-new-file" title="New File">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                            <polyline points="13 2 13 9 20 9"></polyline>
-                        </svg>
-                    </button>
-                    <button id="main-new-folder" title="New Folder">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
-                            </path>
-                        </svg>
-                    </button>
+        <div id="main-layout">
+            <nav id="activity-bar">
+                <div class="activity-item active" data-view="explorer" title="Explorer">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                </div>
+                <div class="activity-item" data-view="search" title="Search">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <div class="activity-item" data-view="git" title="Source Control">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="18" r="3"></circle>
+                        <circle cx="6" cy="6" r="3"></circle>
+                        <circle cx="18" cy="6" r="3"></circle>
+                        <path d="M18 9v2c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V9"></path>
+                        <path d="M12 13V6"></path>
+                    </svg>
+                </div>
+                <div class="activity-item active" data-view="ai" title="AI Chat">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                        <path d="M12 12L2.1 12.1"></path>
+                        <path d="M12 12l9.9-0.1"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </div>
+            </nav>
+
+            <aside id="sidebar">
+                <!-- Explorer View -->
+                <div id="view-explorer" class="side-view active">
+                    <div class="sidebar-header">
+                        <span id="explorer-title">Explorer</span>
+                        <div class="actions">
+                            <button id="main-new-file" title="New File">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                    <polyline points="13 2 13 9 20 9"></polyline>
+                                </svg>
+                            </button>
+                            <button id="main-new-folder" title="New Folder">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="file-tree"></div>
+                    <div id="explorer-status">Ready</div>
+                </div>
+
+                <!-- Placeholder Views -->
+                <div id="view-search" class="side-view">
+                    <div class="sidebar-header">
+                        <span>Search</span>
+                    </div>
+                    <div class="search-container">
+                        <div class="search-input-group">
+                            <div class="search-input-wrapper">
+                                <input type="text" id="search-input" placeholder="Search" />
+                                <div class="search-options">
+                                    <button id="search-case" class="opt-btn" title="Match Case (Alt+C)">Aa</button>
+                                    <button id="search-word" class="opt-btn"
+                                        title="Match Whole Word (Alt+W)"><u>ab</u></button>
+                                    <button id="search-regex" class="opt-btn"
+                                        title="Use Regular Expression (Alt+R)">.*</button>
+                                </div>
+                            </div>
+                            <div id="replace-wrapper" class="search-input-wrapper hidden">
+                                <input type="text" id="replace-input" placeholder="Replace" />
+                            </div>
+                        </div>
+                        <div id="search-results-summary" class="search-summary"></div>
+                        <div id="search-results-list" class="search-results"></div>
+                    </div>
+                </div>
+                <div id="view-git" class="side-view">
+                    <div class="sidebar-header">
+                        <div class="header-left">
+                            <span>SOURCE CONTROL</span>
+                        </div>
+                        <div class="header-actions">
+                            <button class="icon-btn" onclick="window.refreshGit()" title="Refresh"><svg width="14"
+                                    height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 4v6h-6"></path>
+                                    <path d="M1 20v-6h6"></path>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg></button>
+                            <button class="icon-btn" title="More Actions..."><svg width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="19" cy="12" r="1"></circle>
+                                    <circle cx="5" cy="12" r="1"></circle>
+                                </svg></button>
+                        </div>
+                    </div>
+
+                    <div class="git-view-subheader">
+                        <div class="repo-info">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4">
+                                </path>
+                                <path d="M9 18c-4.51 2-5-2-7-2"></path>
+                            </svg>
+                            <span id="branch-name">main</span>
+                        </div>
+                        <span class="badge" id="git-status-count">0</span>
+                    </div>
+
+                    <div class="git-container">
+                        <div class="git-commit-box">
+                            <div class="commit-input-wrapper">
+                                <textarea id="git-commit-message"
+                                    placeholder="Message (Ctrl+Enter to commit)"></textarea>
+                                <div class="commit-input-actions">
+                                    <button class="generate-btn" title="Generate Commit Message (AI)">
+                                        <span>Generate</span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <polygon
+                                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                            </polygon>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="commit-button-split">
+                                <button id="git-commit-btn" class="primary-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    <span>Commit</span>
+                                </button>
+                                <button class="split-dropdown">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="git-sections">
+                            <div class="git-section" id="git-staged-section">
+                                <div class="git-section-header">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" class="arrow-icon">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <span>STAGED CHANGES</span>
+                                    <span class="section-count" id="git-staged-count">0</span>
+                                </div>
+                                <div id="git-staged-list" class="git-items-container"></div>
+                            </div>
+                            <div class="git-section" id="git-changes-section">
+                                <div class="git-section-header">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" class="arrow-icon">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <span>CHANGES</span>
+                                    <span class="section-count" id="git-changes-count">0</span>
+                                    <div class="header-actions">
+                                        <button class="icon-btn" title="Discard All Changes"><svg width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                                <polyline points="3 3 3 8 8 8"></polyline>
+                                            </svg></button>
+                                        <button class="icon-btn" title="Stage All Changes"><svg width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            </svg></button>
+                                    </div>
+                                </div>
+                                <div id="git-changes-list" class="git-items-container"></div>
+                            </div>
+                            <div class="git-section" id="git-graph-section">
+                                <div class="git-section-header">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" class="arrow-icon">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <span>GRAPH</span>
+                                    <div class="graph-actions">
+                                        <button class="icon-btn" title="Auto Refresh Graph"><svg width="12" height="12"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg></button>
+                                    </div>
+                                </div>
+                                <div id="git-log-list" class="git-items-container"></div>
+                            </div>
+                        </div>
+                        <div id="git-no-repo" class="placeholder-content hidden">
+                            No Git repository detected.
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main id="editor-container">
+                <div id="tabs-container"></div>
+                <div id="editor"></div>
+                <div id="terminal-section">
+                    <div id="terminal-tabs-header">
+                        <div id="terminal-tabs"></div>
+                        <button id="add-terminal-btn" title="New Terminal">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 5v14M5 12h14" />
+                            </svg>
+                        </button>
+                        <div id="terminal-spacer"></div>
+                    </div>
+                    <div id="terminal-content"></div>
+                </div>
+            </main>
+
+            <aside id="chat-sidebar" class="active">
+                <div class="sidebar-header">Cognifyr AI</div>
+                <div id="chat-messages"></div>
+                <div id="ai-status" class="status-indicator hidden">
+                    <span class="spinner"></span> Thinking...
+                </div>
+                <div id="chat-input-container">
+                    <textarea id="chat-input" placeholder="Describe what you want to build..."></textarea>
+                    <button id="send-btn">Generate Code</button>
+                </div>
+            </aside>
+        </div> <!-- End of main-layout -->
+
+        <footer id="status-bar">
+            <div class="status-left">
+                <div class="status-item" id="git-indicator">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="18" r="3"></circle>
+                        <circle cx="6" cy="6" r="3"></circle>
+                        <circle cx="18" cy="6" r="3"></circle>
+                        <path d="M18 9v2c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V9"></path>
+                        <path d="M12 13V6"></path>
+                    </svg>
+                    <span id="branch-name">main</span>
                 </div>
             </div>
-            <div id="file-tree"></div>
-        </aside>
+            <div class="status-right">
+                <div class="status-item" id="cursor-pos">Ln 1, Col 1</div>
+                <div class="status-item" id="indent-indicator">Spaces: 4</div>
+                <div class="status-item" id="encoding-indicator">UTF-8</div>
+                <div class="status-item" id="language-indicator">plaintext</div>
+            </div>
+        </footer>
 
-        <main id="editor-container">
-            <div id="editor"></div>
-            <div id="terminal-section">
-                <div id="terminal-tabs-header">
-                    <div id="terminal-tabs"></div>
-                    <button id="add-terminal-btn" title="New Terminal">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M12 5v14M5 12h14" />
-                        </svg>
-                    </button>
-                    <div id="terminal-spacer"></div>
+        <!-- Command Palette Overlay -->
+        <div id="command-palette" class="overlay hidden">
+            <div class="palette-container">
+                <div class="palette-search">
+                    <input type="text" id="palette-input" placeholder="Type a command or search..." autocomplete="off">
                 </div>
-                <div id="terminal-content"></div>
+                <div id="palette-results" class="palette-results"></div>
             </div>
-        </main>
-
-        <aside id="chat-sidebar">
-            <div class="sidebar-header">Cognifyr AI</div>
-            <div id="chat-messages"></div>
-            <div id="ai-status" class="status-indicator hidden">
-                <span class="spinner"></span> Thinking...
-            </div>
-            <div id="chat-input-container">
-                <textarea id="chat-input" placeholder="Describe what you want to build..."></textarea>
-                <button id="send-btn">Generate Code</button>
-            </div>
-        </aside>
+        </div>
     </div>
 
     <link rel="stylesheet" href="../../node_modules/xterm/css/xterm.css" />
@@ -75,6 +300,10 @@
     <script src="explorer.js"></script>
     <script src="terminal.js"></script>
     <script src="chat.js"></script>
+    <script src="git.js"></script>
+    <script src="search.js"></script>
+    <script src="palette.js"></script>
+    <script src="layout.js"></script>
 </body>
 
 </html>

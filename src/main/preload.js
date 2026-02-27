@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     readFile: (path) => ipcRenderer.invoke('read-file', path),
     writeFile: (path, content) => ipcRenderer.invoke('write-file', path, content),
     openDirectory: () => ipcRenderer.invoke('open-directory'),
-    createTerminal: () => ipcRenderer.invoke('create-terminal'),
+    createTerminal: (cwd) => ipcRenderer.invoke('create-terminal', cwd),
     closeTerminal: (id) => ipcRenderer.invoke('close-terminal', id),
     terminalToPty: (id, data) => ipcRenderer.send('terminal-to-pty', id, data),
     onTerminalFromPty: (id, callback) => {
@@ -35,4 +35,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onAgentFileChanged: (callback) => ipcRenderer.on('agent-file-changed', (event, data) => callback(data)),
     onAgentCommandStarted: (callback) => ipcRenderer.on('agent-command-started', (event, data) => callback(data)),
     onAgentCommandFinished: (callback) => ipcRenderer.on('agent-command-finished', (event, data) => callback(data)),
+    getGitBranch: (workspacePath) => ipcRenderer.invoke('get-git-branch', workspacePath),
+    getGitStatus: (workspacePath) => ipcRenderer.invoke('get-git-status', workspacePath),
+    gitStage: (workspacePath, filePath) => ipcRenderer.invoke('git-stage', workspacePath, filePath),
+    gitUnstage: (workspacePath, filePath) => ipcRenderer.invoke('git-unstage', workspacePath, filePath),
+    gitCommit: (workspacePath, message) => ipcRenderer.invoke('git-commit', workspacePath, message),
+    searchProject: (workspacePath, query, options) => ipcRenderer.invoke('search-project', workspacePath, query, options),
+    getGitLog: (workspacePath) => ipcRenderer.invoke('get-git-log', workspacePath),
 });

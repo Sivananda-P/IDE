@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
+const { exec } = require('child_process');
 const pty = require('node-pty');
 const os = require('os');
 const AIAgent = require('./agent');
@@ -98,14 +99,14 @@ const terminals = new Map();
 let nextTerminalId = 1;
 
 // Terminal IPC Handlers
-ipcMain.handle('create-terminal', (event) => {
+ipcMain.handle('create-terminal', (event, cwd) => {
     const id = nextTerminalId++;
     const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash';
     const ptyProcess = pty.spawn(shell, [], {
         name: 'xterm-color',
         cols: 80,
         rows: 24,
-        cwd: process.env.HOME || process.env.USERPROFILE,
+        cwd: cwd || process.env.HOME || process.env.USERPROFILE,
         env: process.env
     });
 
@@ -271,6 +272,147 @@ ipcMain.handle('show-context-menu', (event, options) => {
             callback: () => resolve({ action: null })
         });
     });
+});
+
+ipcMain.handle('get-git-branch', async (event, workspacePath) => {
+    return new Promise((resolve) => {
+        if (!workspacePath) return resolve(null);
+        exec('git branch --show-current', { cwd: workspacePath }, (error, stdout) => {
+            if (error) resolve(null);
+            else resolve(stdout.trim());
+        });
+    });
+});
+
+ipcMain.handle('get-git-status', async (event, workspacePath) => {
+    return new Promise((resolve) => {
+        if (!workspacePath) return resolve(null);
+        // Using -b to get branch info and --porcelain=v1 for machine readable status
+        exec('git status --porcelain=v1', { cwd: workspacePath }, (error, stdout) => {
+            if (error) return resolve(null);
+            const lines = stdout.split('\n').filter(line => line.trim());
+            const statusList = lines.map(line => {
+                const x = line[0]; // Index status
+                const y = line[1]; // Working tree status
+                const path = line.substring(3).trim();
+
+                // Categorize based on porcelain status
+                // If x is not ' ' and not '?', it's staged
+                const isStaged = x !== ' ' && x !== '?';
+                const status = (x !== ' ' && x !== '?') ? x : y;
+
+                return { status, path, isStaged };
+            });
+            resolve(statusList);
+        });
+    });
+});
+
+ipcMain.handle('git-stage', async (event, workspacePath, filePath) => {
+    return new Promise((resolve) => {
+        exec(`git add "${filePath}"`, { cwd: workspacePath }, (error) => {
+            if (error) resolve({ success: false, error: error.message });
+            else resolve({ success: true });
+        });
+    });
+});
+
+ipcMain.handle('git-unstage', async (event, workspacePath, filePath) => {
+    return new Promise((resolve) => {
+        // Use 'git reset HEAD <file>' to unstage
+        exec(`git reset HEAD "${filePath}"`, { cwd: workspacePath }, (error) => {
+            if (error) resolve({ success: false, error: error.message });
+            else resolve({ success: true });
+        });
+    });
+});
+
+ipcMain.handle('git-commit', async (event, workspacePath, message) => {
+    return new Promise((resolve) => {
+        // Escape double quotes in message
+        const safeMessage = message.replace(/"/g, '\\"');
+        exec(`git commit -m "${safeMessage}"`, { cwd: workspacePath }, (error, stdout) => {
+            if (error) resolve({ success: false, error: error.message });
+            else resolve({ success: true, output: stdout });
+        });
+    });
+});
+
+ipcMain.handle('get-git-log', async (event, workspacePath) => {
+    return new Promise((resolve) => {
+        if (!workspacePath) return resolve(null);
+        // git log format: hash | author | date | relative date | message
+        const format = '%H|%an|%ad|%ar|%s';
+        exec(`git log -n 50 --pretty=format:"${format}"`, { cwd: workspacePath }, (error, stdout) => {
+            if (error) return resolve([]);
+            const commits = stdout.split('\n').filter(line => line.trim()).map(line => {
+                const [hash, author, date, relativeDate, message] = line.split('|');
+                return { hash, author, date, relativeDate, message };
+            });
+            resolve(commits);
+        });
+    });
+});
+
+ipcMain.handle('search-project', async (event, workspacePath, query, options = {}) => {
+    const { isRegex, isCaseSensitive, isWholeWord } = options;
+    const results = [];
+
+    async function searchRecursive(dir) {
+        const files = await fs.readdir(dir, { withFileTypes: true });
+        for (const file of files) {
+            const fullPath = path.join(dir, file.name);
+            if (file.isDirectory()) {
+                // Skip common large/binary folders
+                if (file.name === 'node_modules' || file.name === '.git' || file.name === 'dist') continue;
+                await searchRecursive(fullPath);
+            } else {
+                // Basic text file check (could be more robust)
+                const ext = path.extname(file.name).toLowerCase();
+                const textExts = ['.js', '.html', '.css', '.json', '.md', '.py', '.c', '.cpp', '.h', '.txt'];
+                if (!textExts.includes(ext)) continue;
+
+                try {
+                    const content = await fs.readFile(fullPath, 'utf-8');
+                    const lines = content.split('\n');
+
+                    let flags = isCaseSensitive ? 'g' : 'gi';
+                    let finalQuery = query;
+                    if (!isRegex) {
+                        // Escape regex chars if not in regex mode
+                        finalQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    }
+                    if (isWholeWord) {
+                        finalQuery = `\\b${finalQuery}\\b`;
+                    }
+
+                    const regex = new RegExp(finalQuery, flags);
+
+                    lines.forEach((line, index) => {
+                        if (regex.test(line)) {
+                            results.push({
+                                path: fullPath,
+                                relativePath: path.relative(workspacePath, fullPath),
+                                line: index + 1,
+                                content: line.trim()
+                            });
+                        }
+                    });
+                } catch (e) {
+                    console.error(`Error reading ${fullPath} for search:`, e);
+                }
+            }
+        }
+    }
+
+    try {
+        if (workspacePath) {
+            await searchRecursive(workspacePath);
+        }
+        return results;
+    } catch (error) {
+        return { error: error.message };
+    }
 });
 
 ipcMain.handle('path-join', (event, ...args) => path.join(...args));
